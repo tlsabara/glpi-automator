@@ -1,0 +1,6 @@
+streamlit
+celery
+pandas
+redis
+streamlit-autorefresh
+flower

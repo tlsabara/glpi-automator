@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile_app
+    image: streamlit_app
+    container_name: streamlit_app
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./temp_files:/app/temp_files
+    depends_on:
+      - worker
+      - redis
+    networks:
+      - app_network
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile_worker
+    image: celery_worker
+    container_name: celery_worker
+    volumes:
+      - ./temp_files:/app/temp_files
+    depends_on:
+      - redis
+    networks:
+      - app_network
+
+  redis:
+    image: redis:6.2-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app_network
+
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile_flower
+    image: celery_flower
+    container_name: celery_flower
+    ports:
+      - "5555:5555"
+    depends_on:
+      - worker
+      - redis
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge

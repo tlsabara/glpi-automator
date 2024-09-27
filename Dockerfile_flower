@@ -1,0 +1,15 @@
+# Dockerfile_flower
+FROM python:3.12-slim
+
+WORKDIR /app
+
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY tasks.py /app/
+COPY glpi_client/ /app/glpi_client
+COPY . /app/
+
+EXPOSE 5555
+
+CMD ["celery", "-A", "tasks", "flower", "--broker=redis://redis:6379/0", "--port=5555", "--address=0.0.0.0"]

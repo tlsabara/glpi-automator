@@ -7,6 +7,10 @@ services:
       dockerfile: Dockerfile_app
     image: streamlit_app
     container_name: streamlit_app
+    env_file:
+      - .env_app
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     ports:
       - "8501:8501"
     volumes:
@@ -23,6 +27,10 @@ services:
       dockerfile: Dockerfile_worker
     image: celery_worker
     container_name: celery_worker
+    env_file:
+      - .env_app
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     volumes:
       - ./temp_files:/app/temp_files
     depends_on:
@@ -42,6 +50,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile_flower
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    env_file:
+      - .env_app
     image: celery_flower
     container_name: celery_flower
     ports:

@@ -3,20 +3,23 @@ import streamlit as st
 import pandas as pd
 import os
 import uuid
-from celery.result import AsyncResult
+
+from app_utils.auto_refresh import set_auto_refresh_controller
 from tasks import process_csv
 from celery import Celery
-from streamlit_autorefresh import st_autorefresh
 
 
-count = st_autorefresh(interval=2000, limit=1000, key="fizzbuzzcounter")
+global count
 
 # Configurar o Celery para se conectar ao backend Redis
 celery_app = Celery('tasks', broker='redis://redis:6379/0', backend='redis://redis:6379/0')
 
 def main():
-    st.title('Criação de tickets em massa - GLPI')
+    if 'auto_refresh' not in st.session_state:
+        st.session_state.auto_refresh = True
 
+    st.title('Criação de tickets em massa - GLPI')
+    set_auto_refresh_controller(st)
     # Inicializar o estado da sessão
     if 'task_ids' not in st.session_state:
         st.session_state.task_ids = []

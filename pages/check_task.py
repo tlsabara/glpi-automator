@@ -3,22 +3,36 @@ import streamlit as st
 from celery.result import AsyncResult
 from celery import Celery
 import pandas as pd
+import os
 
-# Configurar o Celery para se conectar ao backend Redis
+from app_utils.auto_refresh import set_auto_refresh_controller
+
+global count
+
 celery_app = Celery('tasks', broker='redis://redis:6379/0', backend='redis://redis:6379/0')
 
+def csv_finder(folder, task_id):
+    filename = f'{task_id}_processed.csv'
+    file = os.path.join(folder, filename)
+    if os.path.exists(file):
+        return file
+    else:
+        return None
+
 def main():
-    st.title('Verificar Status da Tarefa pelo ID')
+    st.title('Verificar Resultado da Tarefa pelo ID')
+
+    set_auto_refresh_controller(st)
 
     task_id_input = st.text_input('Insira o ID da tarefa:', '')
 
-    if st.button('Verificar Status'):
+    if st.button('Verificar o resultado da tarefa'):
         if task_id_input:
             task_result = AsyncResult(task_id_input, app=celery_app)
             st.write(f"**Tarefa ID:** {task_id_input}")
 
             if task_result.state == 'PENDING':
-                st.info('A tarefa está na fila de processamento.')
+                st.info('Tarefa não encontrada, ou não finalizada.')
             elif task_result.state == 'PROGRESS':
                 progress = task_result.info
                 current = progress.get('current', 0)

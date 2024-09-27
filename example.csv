@@ -1,4 +1,4 @@
-c1;c2;c3;c4
-1;1;1;1
-2;2;2;2
-3;3;3;3
+ticket_name;ticket_content;ticket_type;task_content;task_state
+Title1;Desc1;1;Extrafield1;1
+Title2;Desc2;1;Extrafield2;1
+Title3;Desc3;1;Extrafield3;1

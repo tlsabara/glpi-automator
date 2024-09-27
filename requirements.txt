@@ -4,3 +4,5 @@ pandas
 redis
 streamlit-autorefresh
 flower
+python-dotenv
+httpx

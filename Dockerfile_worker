@@ -11,7 +11,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar o código da aplicação
 COPY tasks.py /app/
-
+COPY glpi_client/ /app/glpi_client
 # Criar o diretório para arquivos temporários
 RUN mkdir -p /app/temp_files
 

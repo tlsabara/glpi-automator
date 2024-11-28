@@ -26,7 +26,6 @@ def main():
             # task_result.get()
         except Exception as e:
             task_result = None
-        print(task_id)
         st.write(f"**Tarefa ID:** {task_id}")
         if task_result is None:
             st.error('Ocorreu um erro durante o processamento.')
@@ -41,7 +40,6 @@ def main():
             st.write(f'Processando linha {current} de {total}')
         elif task_result.state == 'SUCCESS':
             result = task_result.result
-            st.write(result)
             if result['status'] == 'completed':
                 st.success('Processamento concluído!')
                 if st.button(f"Ver resultado da tarefa {task_id}"):

@@ -15,8 +15,14 @@ global count
 celery_app = Celery('tasks', broker='redis://redis:6379/0', backend='redis://redis:6379/0')
 
 def main():
-    if 'auto_refresh' not in st.session_state:
-        st.session_state.auto_refresh = True
+    hide_streamlit_style = """
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    </style>
+
+    """
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
     st.title('Criação de tickets em massa - GLPI')
     set_auto_refresh_controller(st)

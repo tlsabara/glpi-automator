@@ -15,6 +15,7 @@ services:
       - "8501:8501"
     volumes:
       - ./temp_files:/app/temp_files
+      - ./processed_files:/app/processed_files
     depends_on:
       - worker
       - redis
@@ -33,6 +34,7 @@ services:
       - 'host.docker.internal:host-gateway'
     volumes:
       - ./temp_files:/app/temp_files
+      - ./processed_files:/app/processed_files
     depends_on:
       - redis
     networks:

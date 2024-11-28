@@ -1,4 +1,4 @@
-# pages/check_task.py
+# pages/Verificar_importação.py
 import streamlit as st
 from celery.result import AsyncResult
 from celery import Celery

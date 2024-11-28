@@ -1,25 +1,28 @@
 # Dockerfile_app
 FROM python:3.12-slim
 
+ENV APP_DIR=/app
+
 # Definir o diretório de trabalho
-WORKDIR /app
+WORKDIR $APP_DIR
 
 # Copiar o arquivo requirements.txt e instalar as dependências
-COPY requirements.txt /app/
+COPY requirements.txt $APP_DIR/
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar o código da aplicação
-COPY app.py /app/
-COPY tasks.py /app/
-COPY pages/ /app/pages/
-COPY app_utils /app/app_utils
-COPY glpi_client/ /app/glpi_client
+COPY Importação.py $APP_DIR/
+COPY .streamlit/ $APP_DIR/.streamlit/
+COPY tasks.py $APP_DIR/
+COPY pages/ $APP_DIR/pages/
+COPY app_utils $APP_DIR/app_utils
+COPY glpi_client/ $APP_DIR/glpi_client
 # Criar o diretório para arquivos temporários
-RUN mkdir -p /app/temp_files
+RUN mkdir -p $APP_DIR/temp_files
 
 # Expor a porta padrão do Streamlit
 EXPOSE 8501
 
 # Comando para executar a aplicação
-CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.enableCORS=false", "--browser.gatherUsageStats=false"]
+CMD ["streamlit", "run", "Importação.py", "--server.port=8501", "--server.enableCORS=false", "--browser.gatherUsageStats=false"]

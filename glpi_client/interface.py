@@ -65,6 +65,7 @@ class GLPIApiClient:
             }
         }
         response = self._api_client.post(endpoint, headers=self.auth_headers, json=body_data)
+        print(response.text)
         if response.status_code == 201:
             return response.status_code, response.json()['id']
         else:
@@ -110,3 +111,91 @@ class GLPIApiClient:
             return data[1]
         else:
             return self.__request_error_handler(data[0], 'unhandled error on add ticket')
+
+    @staticmethod
+    def __generate_actors_body(tickets_id: str, actors_string: str, target_str: str = 'users_id'):
+        """
+        A string deve ter o formato: '1:2,3:4' seguindo o padrão 'user_id|group_id:type_actor'
+        :param tickets_id:
+        :param actors_string:
+        :return:
+        """
+        result = []
+        pairs = actors_string.split(',')
+        print("Pairs: ", pairs, len(pairs))
+        for pair in pairs:
+            object_id, type_actor = pair.split(':')
+            result.append({
+                'tickets_id': tickets_id,
+                target_str: int(object_id),
+                'type': int(type_actor)
+            })
+        print("Result: ", result)
+        return result
+
+    def __submit_post_actors(self, endpoint:str, request_body: dict, action: str, tickets_id: str, **kwargs):
+        response = self._api_client.post(endpoint, headers=self.auth_headers, json=request_body)
+        print(f"POST ACTORS >> {endpoint} >> {response.status_code}")
+        if response.status_code != 201:
+            return {
+                'ticket': tickets_id,
+                'action': action,
+                'status': 'fail',
+                'response': response.text
+            }
+        else:
+            return {
+                'ticket': tickets_id,
+                'action': action,
+                'status': 'success'
+            }
+
+    def add_ticket_user_actors(self, tickets_id: str, actors_users: str) -> list:
+        endpoint_users = self.__api_server_endpoint + f'/Ticket/{tickets_id}/Ticket_User'
+        users_actors = self.__generate_actors_body(tickets_id, actors_users, 'users_id')
+        process_log = []
+
+        for user_actor in users_actors:
+            body_data = {
+                'input': user_actor
+            }
+            print(body_data)
+            log_dict = self.__submit_post_actors(
+                endpoint=endpoint_users,
+                request_body=body_data,
+                action='add_user_actor',
+                tickets_id=tickets_id
+            )
+            process_log.append(log_dict)
+        return process_log
+
+    def add_ticket_group_actors(self, tickets_id: str, actors_groups: str) -> list:
+        endpoint_groups = self.__api_server_endpoint + f'/Ticket/{tickets_id}/Group_Ticket'
+        groups_actors = self.__generate_actors_body(tickets_id, actors_groups, 'groups_id')
+        process_log = []
+
+        for group_actor in groups_actors:
+            body_data = {
+                'input': group_actor
+            }
+            log_dict = self.__submit_post_actors(
+                endpoint=endpoint_groups,
+                request_body=body_data,
+                action='add_group_actor',
+                tickets_id=tickets_id
+            )
+            process_log.append(log_dict)
+        return process_log
+
+    def update_ticket_status(self, tickets_id: str, status_id: str):
+        endpoint = self.__api_server_endpoint + f'/Ticket/{tickets_id}'
+        body_data = {
+            'input': {
+                'status': int(status_id)
+            }
+        }
+        response = self._api_client.put(endpoint, headers=self.auth_headers, json=body_data)
+        print("Body: ", body_data)
+        print(f"PUT >> {endpoint} >> {response.status_code}>> {response.text}")
+        return response.status_code == 200
+

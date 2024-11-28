@@ -1,0 +1,193 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: glpi-automator-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: glpi-automator-app
+  template:
+    metadata:
+      labels:
+        app: glpi-automator-app
+    spec:
+      containers:
+      - name: glpi-automator-app
+        image: harbor.nuvem.online/glpi-automator/app:v1.0.1
+        envFrom:
+        - configMapRef:
+            name: app-env
+        ports:
+        - containerPort: 8501
+        volumeMounts:
+        - name: temp-files
+          mountPath: /app/temp_files
+        - name: processed-files
+          mountPath: /app/processed_files
+      volumes:
+      - name: temp-files
+        persistentVolumeClaim:
+          # Verificar o nome do PVC em produção
+          claimName: glpi-vol
+      - name: processed-files
+        persistentVolumeClaim:
+          # Verificar o nome do PVC em produção
+          claimName: glpi-vol
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: glpi-automator-celery-worker
+  template:
+    metadata:
+      labels:
+        app: glpi-automator-celery-worker
+    spec:
+      containers:
+      - name: glpi-automator-worker
+        image: harbor.nuvem.online/glpi-automator/worker:v1.0.1
+        envFrom:
+        - configMapRef:
+            name: app-env
+        volumeMounts:
+        - name: temp-files
+          mountPath: /app/temp_files
+        - name: processed-files
+          mountPath: /app/processed_files
+      volumes:
+      - name: temp-files
+        persistentVolumeClaim:
+          # Verificar o nome do PVC em produção
+          claimName: glpi-vol
+      - name: processed-files
+        persistentVolumeClaim:
+          # Verificar o nome do PVC em produção
+          claimName: glpi-vol
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flower
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: glpi-automator-celery-flower
+  template:
+    metadata:
+      labels:
+        app: glpi-automator-celery-flower
+    spec:
+      containers:
+      - name: glpi-automator-flower
+        image: harbor.nuvem.online/glpi-automator/flower:v1.0.1
+        envFrom:
+        - configMapRef:
+            name: app-env
+        ports:
+        - containerPort: 5555
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-glpi-automator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-glpi-automator
+  template:
+    metadata:
+      labels:
+        app: redis-glpi-automator
+    spec:
+      containers:
+      - name: redis-glpi-automator
+        image: redis:6.2-alpine
+        ports:
+        - containerPort: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: glpi-automator-app
+spec:
+  selector:
+    app: glpi-automator-app
+  ports:
+  - protocol: TCP
+    port: 8501
+    targetPort: 8501
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: glpi-automator-flower
+spec:
+  selector:
+    app: celery-flower
+  ports:
+  - protocol: TCP
+    port: 5555
+    targetPort: 5555
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: glpi-automator-redis-svc
+spec:
+  selector:
+    app: redis-glpi-automator
+  ports:
+  - protocol: TCP
+    port: 6379
+    targetPort: 6379
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-env
+data:
+  # PEGAR O APP TOKEN NO MENU DE API DO GLPI
+  GLPI_APP_TOKEN: trocar_token
+  # Criar um usuário para a integração (com senha e SuperAdmin)
+  GLPI_APP_USER: GLPI
+  GLPI_APP_PASS: 'K)#n3guinha'
+  # Verificar o nome do service no deploy do GLPI
+  GLPI_API_ENDPOINT: http://glpi-app:80/apirest.php
+  PROCESSED_FOLDER: /app/processed_files
+  DEBUG: 0
+  REDIS_HOST: glpi-automator-redis-svc
+  REDIS_PORT: 6379
+# ---
+# ARMAZENAMENTO TA AQUI MAS USEI O DO PROPRIO GLPI EMM STG
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: temp-files-pvc
+# spec:
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 1Gi
+# ---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: processed-files-pvc
+# spec:
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 1Gi

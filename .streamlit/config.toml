@@ -1,5 +1,8 @@
 [theme]
 primaryColor="#009e94"
 backgroundColor="#0f233a"
-secondaryBackgroundColor="#225186"
+secondaryBackgroundColor="#29679e"
 textColor="#ffffff"
+
+[server]
+enableXsrfProtection=false

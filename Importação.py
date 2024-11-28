@@ -1,4 +1,4 @@
-# app.py
+# Importação.py
 import streamlit as st
 import pandas as pd
 import os
@@ -8,19 +8,24 @@ from app_utils.auto_refresh import set_auto_refresh_controller
 from tasks import process_csv
 from celery import Celery
 
-
 global count
 
-# Configurar o Celery para se conectar ao backend Redis
-celery_app = Celery('tasks', broker='redis://redis:6379/0', backend='redis://redis:6379/0')
+redis_host = os.getenv('REDIS_HOST')
+redis_port = os.getenv('REDIS_PORT')
+app = Celery(
+    'tasks',
+    broker=f'redis://{redis_host}:{redis_port}/0',
+    backend=f'redis://{redis_host}:{redis_port}/0'
+)
+
 
 def main():
     hide_streamlit_style = """
     <style>
-    #MainMenu {visibility: hidden;}
+    # MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
+    button.stAppDeployButton {visibility: hidden;}
     </style>
-
     """
     st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 

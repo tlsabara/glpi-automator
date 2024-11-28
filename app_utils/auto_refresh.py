@@ -10,6 +10,9 @@ def set_auto_refresh(timeout=60000, st_app=None, auto_refresh=True):
 
 
 def set_auto_refresh_controller(st_app):
+    if 'auto_refresh' not in st_app.session_state:
+        st_app.session_state.auto_refresh = True
+
     if st_app.session_state.auto_refresh:
         st_app.button(
             'Desabilitar auto-regfresh',

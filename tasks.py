@@ -7,11 +7,18 @@ from celery import Celery
 import pandas as pd
 import time
 import os
+from dotenv import load_dotenv
 
 from glpi_client.interface import GLPIApiClient
 
+global count
+
+load_dotenv()
 redis_host = os.getenv('REDIS_HOST')
 redis_port = os.getenv('REDIS_PORT')
+glpi_usr = os.getenv('GLPI_APP_USER')
+glpi_pwd = os.getenv('GLPI_APP_PASS')
+
 app = Celery(
     'tasks',
     broker=f'redis://{redis_host}:{redis_port}/0',
@@ -33,8 +40,8 @@ def process_csv(self, file_path):
     error_list = []
     try:
         glpi_client = GLPIApiClient(
-            username='glpi',
-            password='glpi',
+            username=glpi_usr,
+            password=glpi_pwd,
         )
         df = pd.read_csv(file_path, sep=';', encoding='utf-8', )
     except Exception as e:
@@ -50,7 +57,6 @@ def process_csv(self, file_path):
         print('--- row ---')
         print(row)
         print('-----------')
-        # continue
 
         self.update_state(state='PROGRESS', meta={'current': index + 1, 'total': total_rows})
         try:
@@ -69,7 +75,6 @@ def process_csv(self, file_path):
                 print('task_extra_columns')
                 task_extra_args = { col.replace('task_', ''): row[col] for col in task_extra_columns}
                 print(task_extra_args)
-
 
             row['created_ticket_id'] = ticket_id = glpi_client.add_tiket(
                 name=row['ticket_name'],
@@ -103,7 +108,6 @@ def process_csv(self, file_path):
             error_signal = True
             error_list.append(str(e))
             row['Resultado'] = f'FALHA: {e}'
-
 
         # Exemplo de processamento (substitua pela sua lógica)
         processed_row = row  # Implementar a lógica de processamento aqui

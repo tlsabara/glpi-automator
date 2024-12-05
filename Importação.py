@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 import os
 import uuid
+from dotenv import load_dotenv
 
 from app_utils.auto_refresh import set_auto_refresh_controller
 from tasks import process_csv
@@ -10,6 +11,7 @@ from celery import Celery
 
 global count
 
+load_dotenv()
 redis_host = os.getenv('REDIS_HOST')
 redis_port = os.getenv('REDIS_PORT')
 app = Celery(

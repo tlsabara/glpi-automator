@@ -4,12 +4,19 @@ from celery.result import AsyncResult
 from celery import Celery
 import pandas as pd
 import os
-
+from dotenv import load_dotenv
 from app_utils.auto_refresh import set_auto_refresh_controller
 
 global count
 
-celery_app = Celery('tasks', broker='redis://redis:6379/0', backend='redis://redis:6379/0')
+load_dotenv()
+redis_host = os.getenv('REDIS_HOST')
+redis_port = os.getenv('REDIS_PORT')
+celery_app = Celery(
+    'tasks',
+    broker=f'redis://{redis_host}:{redis_port}/0',
+    backend=f'redis://{redis_host}:{redis_port}/0'
+)
 
 def csv_finder(folder, task_id):
     filename = f'{task_id}_processed.csv'

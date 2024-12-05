@@ -1,15 +1,22 @@
 # pages/Status_da_importação.py
 import streamlit as st
+import os
 from celery.result import AsyncResult
 from celery import Celery
 import pandas as pd
-
+from dotenv import load_dotenv
 from app_utils.auto_refresh import set_auto_refresh_controller
 
 global count
 
-# Configurar o Celery para se conectar ao backend Redis
-celery_app = Celery('tasks', broker='redis://redis:6379/0', backend='redis://redis:6379/0')
+load_dotenv()
+redis_host = os.getenv('REDIS_HOST')
+redis_port = os.getenv('REDIS_PORT')
+celery_app = Celery(
+    'tasks',
+    broker=f'redis://{redis_host}:{redis_port}/0',
+    backend=f'redis://{redis_host}:{redis_port}/0'
+)
 
 def main():
     st.title('Status do Processamento')
